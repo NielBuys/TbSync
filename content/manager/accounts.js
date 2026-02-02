@@ -442,13 +442,13 @@ var tbSyncAccounts = {
     if (isInstalled) {
       entry.setAttribute("label",  TbSync.providers[provider].Base.getProviderName());
       entry.setAttribute("image", TbSync.providers[provider].Base.getProviderIcon(16));
-      entry.setAttribute("hidden", false);
+      entry.removeAttribute("hidden");
     } else if (isDefault) {
       entry.setAttribute("label", TbSync.providers.defaultProviders[provider].name);
       entry.setAttribute("image", "chrome://tbsync/content/skin/provider16.png");                    
-      entry.setAttribute("hidden", false);
+      entry.removeAttribute("hidden");
     } else {
-      entry.setAttribute("hidden", true);
+      entry.setAttribute("hidden", "true");
     }
   },
 
