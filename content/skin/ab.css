@@ -4,5 +4,7 @@ treechildren::-moz-tree-image(DirCol, orphaned) {
 }
 
 .abMenuItem[AddrBook="true"][TbSyncIcon="orphaned"] {
+    /* TB143+ uses --menuitem-icon instead of list-style-image for menuitems */
+  --menuitem-icon: url("chrome://tbsync/content/skin/error16.png");
   list-style-image: url("chrome://tbsync/content/skin/error16.png");
 }
