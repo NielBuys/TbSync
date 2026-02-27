@@ -3,12 +3,12 @@
     "gecko": {
       "id": "tbsync@jobisoft.de",
       "strict_min_version": "136.0",
-      "strict_max_version": "147.*"
+      "strict_max_version": "150.*"
     }
   },
   "manifest_version": 2,
   "name": "TbSync",
-  "version": "4.16.1",
+  "version": "4.16.2",
   "author": "John Bieling",
   "homepage_url": "https://github.com/jobisoft/TbSync",
   "default_locale": "en-US",
