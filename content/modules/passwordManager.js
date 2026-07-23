@@ -27,10 +27,22 @@ var passwordManager = {
   unload: async function () {
   },
 
-  removeLoginInfos: function(origin, realm, users = null) {
+  // Thunderbird 153 removed the synchronous Services.logins.findLogins()
+  // (it now throws NS_ERROR_NOT_IMPLEMENTED). searchLoginsAsync() is the
+  // replacement. matchData mirrors findLogins(origin, null, realm): match by
+  // origin + httpRealm, leaving formActionOrigin unset so it acts as a wildcard.
+  _searchLogins: async function(origin, realm) {
+    // searchLoginsAsync() takes a plain matchData object (not an nsIPropertyBag,
+    // which is what the deprecated synchronous searchLogins() expects). Matching
+    // by origin + httpRealm and omitting formActionOrigin mirrors the old
+    // findLogins(origin, null, realm) call.
+    return await Services.logins.searchLoginsAsync({ origin, httpRealm: realm });
+  },
+
+  removeLoginInfos: async function(origin, realm, users = null) {
     let nsLoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1", Components.interfaces.nsILoginInfo, "init");
 
-    let logins = Services.logins.findLogins(origin, null, realm);
+    let logins = await this._searchLogins(origin, realm);
     for (let i = 0; i < logins.length; i++) {
       if (!users || users.includes(logins[i].username)) {
         let currentLoginInfo = new nsLoginInfo(origin, null, realm, logins[i].username, logins[i].password, "", "");
@@ -46,7 +58,7 @@ var passwordManager = {
   updateLoginInfo: async function(origin, realm, oldUser, newUser, newPassword) {
     let nsLoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1", Components.interfaces.nsILoginInfo, "init");
     
-    this.removeLoginInfos(origin, realm, [oldUser, newUser]);
+    await this.removeLoginInfos(origin, realm, [oldUser, newUser]);
     
     let newLoginInfo = new nsLoginInfo(origin, null, realm, newUser, newPassword, "", "");
     try {
@@ -56,8 +68,8 @@ var passwordManager = {
     }
   },
   
-  getLoginInfo: function(origin, realm, user) {
-    let logins = Services.logins.findLogins(origin, null, realm);
+  getLoginInfo: async function(origin, realm, user) {
+    let logins = await this._searchLogins(origin, realm);
     for (let i = 0; i < logins.length; i++) {
       if (logins[i].username == user) {
         return logins[i].password;
