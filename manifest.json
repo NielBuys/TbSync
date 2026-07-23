@@ -7,10 +7,10 @@
     }
   },
   "manifest_version": 2,
-  "name": "TbSync",
+  "name": "TbSync (NielBuys fork)",
   "version": "4.16.4",
   "author": "John Bieling",
-  "homepage_url": "https://github.com/jobisoft/TbSync",
+  "homepage_url": "https://github.com/NielBuys/TbSync",
   "default_locale": "en-US",
   "description": "__MSG_extensionDescription__",
   "icons": {
