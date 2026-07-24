@@ -1,4 +1,12 @@
-# TbSync
+# TbSync (NielBuys fork)
+
+> ### 🍴 About this fork
+>
+> A maintained fork of [jobisoft/TbSync](https://github.com/jobisoft/TbSync).
+>
+> **Purpose:** keep TbSync core — together with the Exchange ActiveSync (EAS) provider that runs on it — **working** on current Thunderbird releases (Thunderbird 153+).
+>
+> **Companion EAS provider:** [NielBuys/EAS-4-TbSync](https://github.com/NielBuys/EAS-4-TbSync). For Exchange / Office 365 accounts, install **both** forks together.
 
 [TbSync](https://addons.thunderbird.net/addon/tbsync/) is a central user interface to manage cloud accounts and to synchronize their contact, task and calendar information with [Thunderbird](https://www.thunderbird.net/). Its main objective is to simplify the setup process for such accounts. Thunderbird is working on a new account-hub UI, which will make TbSync obsolete.
 
