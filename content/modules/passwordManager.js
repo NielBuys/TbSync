@@ -40,14 +40,14 @@ var passwordManager = {
   },
 
   removeLoginInfos: async function(origin, realm, users = null) {
-    let nsLoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1", Components.interfaces.nsILoginInfo, "init");
-
     let logins = await this._searchLogins(origin, realm);
     for (let i = 0; i < logins.length; i++) {
       if (!users || users.includes(logins[i].username)) {
-        let currentLoginInfo = new nsLoginInfo(origin, null, realm, logins[i].username, logins[i].password, "", "");
         try {
-          Services.logins.removeLogin(currentLoginInfo);
+          // TB153 removed the synchronous removeLogin(); removeLoginAsync() is
+          // the replacement. Pass the actual stored login (it carries the GUID)
+          // so it reliably matches and deletes.
+          await Services.logins.removeLoginAsync(logins[i]);
         } catch (e) {
           TbSync.dump("Error removing loginInfo", e);
         }
@@ -57,10 +57,29 @@ var passwordManager = {
 
   updateLoginInfo: async function(origin, realm, oldUser, newUser, newPassword) {
     let nsLoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1", Components.interfaces.nsILoginInfo, "init");
-    
-    await this.removeLoginInfos(origin, realm, [oldUser, newUser]);
-    
     let newLoginInfo = new nsLoginInfo(origin, null, realm, newUser, newPassword, "", "");
+
+    // Atomically replace the existing login in place. The previous
+    // remove-then-add approach could silently fail: if removeLogin did not
+    // match the stored entry, addLoginAsync then rejected as a duplicate and
+    // the error was swallowed, leaving the OLD password (e.g. a stale OAuth
+    // token) in storage forever. modifyLogin replaces all fields on the stored
+    // login (matched by GUID), so the new value always lands.
+    let logins = await this._searchLogins(origin, realm);
+    let existing = logins.find(l => l.username == oldUser || l.username == newUser);
+    if (existing) {
+      try {
+        // TB153 removed the synchronous modifyLogin(); modifyLoginAsync() is the
+        // replacement. Replaces all fields on the stored login (matched by GUID).
+        await Services.logins.modifyLoginAsync(existing, newLoginInfo);
+        return;
+      } catch (e) {
+        TbSync.dump("Error modifying loginInfo", e);
+      }
+    }
+
+    // No existing login (or modify failed): clear any leftovers and add fresh.
+    await this.removeLoginInfos(origin, realm, [oldUser, newUser]);
     try {
       await Services.logins.addLoginAsync(newLoginInfo);
     } catch (e) {
