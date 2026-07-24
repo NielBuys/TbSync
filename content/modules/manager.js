@@ -233,8 +233,18 @@ manager.FolderList = class {
         menupopup.appendChild(menuitem);
       }
       itemACL.appendChild(menupopup);
+
+      // Thunderbird 153 no longer opens a <button type="menu">'s <menupopup>
+      // child on click in this account-manager list (the read-only/read-write
+      // selector appeared dead). Open it explicitly on click. Guarded so it stays
+      // correct if a Toolkit build opens the popup natively.
+      itemACL.addEventListener("click", () => {
+        if (itemACL.getAttribute("disabled") == "true") return;
+        if (menupopup.state == "open" || menupopup.state == "showing") return;
+        menupopup.openPopup(itemACL, "after_start", 0, 0, false, false);
+      });
     }
-    
+
     //folder name
     let itemLabel = document.createXULElement("description");
     itemLabel.setAttribute("updatefield", "foldername");

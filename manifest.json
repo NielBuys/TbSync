@@ -8,7 +8,7 @@
   },
   "manifest_version": 2,
   "name": "TbSync (NielBuys fork)",
-  "version": "4.16.4",
+  "version": "4.16.6",
   "author": "John Bieling",
   "homepage_url": "https://github.com/NielBuys/TbSync",
   "default_locale": "en-US",
