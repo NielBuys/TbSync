@@ -17,7 +17,7 @@
   );
   
   var tbsyncExtension = ExtensionParent.GlobalManager.getExtension(
-    "tbsync@jobisoft.de"
+    "tbsync@nielbuys.fork"
   );
   var { TbSync: TbSyncModule } = ChromeUtils.importESModule(
     `chrome://tbsync/content/tbsync.sys.mjs?${tbsyncExtension.manifest.version}`

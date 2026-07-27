@@ -1,14 +1,14 @@
 {
   "applications": {
     "gecko": {
-      "id": "tbsync@jobisoft.de",
+      "id": "tbsync@nielbuys.fork",
       "strict_min_version": "136.0",
       "strict_max_version": "160.*"
     }
   },
   "manifest_version": 2,
   "name": "TbSync (NielBuys fork)",
-  "version": "4.16.6",
+  "version": "4.16.8",
   "author": "John Bieling",
   "homepage_url": "https://github.com/NielBuys/TbSync",
   "default_locale": "en-US",
