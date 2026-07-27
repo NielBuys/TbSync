@@ -33,8 +33,8 @@ var providers = {
       name: "Google's People API", 
       homepageUrl: "https://addons.thunderbird.net/addon/google-4-tbsync/"},
     "eas" : {
-      name: "Exchange ActiveSync", 
-      homepageUrl: "https://addons.thunderbird.net/addon/eas-4-tbsync/"},
+      name: "Exchange ActiveSync",
+      homepageUrl: "https://github.com/NielBuys/EAS-4-TbSync/releases"},
   },
   
   loadedProviders: null,    
