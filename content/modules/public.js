@@ -13,7 +13,7 @@ var { ExtensionParent } = ChromeUtils.importESModule(
 );
 
 var tbsyncExtension = ExtensionParent.GlobalManager.getExtension(
-  "tbsync@jobisoft.de"
+  "tbsync@nielbuys.fork"
 );
 var { TbSync } = ChromeUtils.importESModule(
   `chrome://tbsync/content/tbsync.sys.mjs?${tbsyncExtension.manifest.version}`
@@ -751,7 +751,7 @@ var localizeOnLoad = function (window, provider) {
     // the editAccount dialog is never called as a provider, but from tbsync itself
   let eventId = "DOMOverlayLoaded_"
       + (!provider || window.location.href.startsWith("chrome://tbsync/content/manager/editAccount.") ? "" : provider + "4")
-      + "tbsync@jobisoft.de";
+      + "tbsync@nielbuys.fork";
   window.document.addEventListener(eventId, () => {
     TbSync.localizeNow(window, provider);
   }, { once: true });
