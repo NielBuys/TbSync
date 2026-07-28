@@ -39,15 +39,50 @@ var passwordManager = {
     return await Services.logins.searchLoginsAsync({ origin, httpRealm: realm });
   },
 
+  // Version-agnostic login-store writes. TB153 removed the synchronous
+  // removeLogin/modifyLogin/addLogin (they now throw NS_ERROR_NOT_IMPLEMENTED)
+  // and requires the *Async variants. But TB140 does NOT have the async
+  // variants (modifyLoginAsync/removeLoginAsync are undefined there), so the
+  // async-only version silently failed: modifyLoginAsync threw "not a
+  // function", the catch swallowed it, the remove-then-add fallback also hit an
+  // undefined removeLoginAsync, and addLoginAsync then rejected as a duplicate.
+  // The net effect on TB140 was that a refreshed OAuth token was NEVER
+  // persisted, so a dead access token kept being sent until Microsoft returned
+  // 401 (the "works ~1h then stops until account recreate" bug). Prefer the
+  // async API (so we never call the removed sync methods on TB153) and fall
+  // back to the sync API when the async one is unavailable (TB140).
+  _modifyLogin: async function(oldLogin, newLogin) {
+    if (typeof Services.logins.modifyLoginAsync === "function") {
+      await Services.logins.modifyLoginAsync(oldLogin, newLogin);
+    } else {
+      Services.logins.modifyLogin(oldLogin, newLogin);
+    }
+  },
+
+  _removeLogin: async function(login) {
+    if (typeof Services.logins.removeLoginAsync === "function") {
+      await Services.logins.removeLoginAsync(login);
+    } else {
+      Services.logins.removeLogin(login);
+    }
+  },
+
+  _addLogin: async function(login) {
+    if (typeof Services.logins.addLoginAsync === "function") {
+      await Services.logins.addLoginAsync(login);
+    } else {
+      Services.logins.addLogin(login);
+    }
+  },
+
   removeLoginInfos: async function(origin, realm, users = null) {
     let logins = await this._searchLogins(origin, realm);
     for (let i = 0; i < logins.length; i++) {
       if (!users || users.includes(logins[i].username)) {
         try {
-          // TB153 removed the synchronous removeLogin(); removeLoginAsync() is
-          // the replacement. Pass the actual stored login (it carries the GUID)
-          // so it reliably matches and deletes.
-          await Services.logins.removeLoginAsync(logins[i]);
+          // Pass the actual stored login (it carries the GUID) so it reliably
+          // matches and deletes.
+          await this._removeLogin(logins[i]);
         } catch (e) {
           TbSync.dump("Error removing loginInfo", e);
         }
@@ -61,17 +96,15 @@ var passwordManager = {
 
     // Atomically replace the existing login in place. The previous
     // remove-then-add approach could silently fail: if removeLogin did not
-    // match the stored entry, addLoginAsync then rejected as a duplicate and
-    // the error was swallowed, leaving the OLD password (e.g. a stale OAuth
-    // token) in storage forever. modifyLogin replaces all fields on the stored
-    // login (matched by GUID), so the new value always lands.
+    // match the stored entry, addLogin then rejected as a duplicate and the
+    // error was swallowed, leaving the OLD password (e.g. a stale OAuth token)
+    // in storage forever. modifyLogin replaces all fields on the stored login
+    // (matched by GUID), so the new value always lands.
     let logins = await this._searchLogins(origin, realm);
     let existing = logins.find(l => l.username == oldUser || l.username == newUser);
     if (existing) {
       try {
-        // TB153 removed the synchronous modifyLogin(); modifyLoginAsync() is the
-        // replacement. Replaces all fields on the stored login (matched by GUID).
-        await Services.logins.modifyLoginAsync(existing, newLoginInfo);
+        await this._modifyLogin(existing, newLoginInfo);
         return;
       } catch (e) {
         TbSync.dump("Error modifying loginInfo", e);
@@ -81,7 +114,7 @@ var passwordManager = {
     // No existing login (or modify failed): clear any leftovers and add fresh.
     await this.removeLoginInfos(origin, realm, [oldUser, newUser]);
     try {
-      await Services.logins.addLoginAsync(newLoginInfo);
+      await this._addLogin(newLoginInfo);
     } catch (e) {
       TbSync.dump("Error adding loginInfo", e);
     }
