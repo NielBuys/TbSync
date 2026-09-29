@@ -478,6 +478,12 @@ var lightning = {
   },  
   
   calendarObserver : { 
+    // Since TB155 cal.manager is a plain ES module singleton and no longer an
+    // XPCOM service, observers are not auto-wrapped by XPConnect anymore and
+    // must provide QueryInterface themselves (see ListenerSet.add() in
+    // calendar/utils/calDataUtils.sys.mjs).
+    QueryInterface: ChromeUtils.generateQI(["calIObserver"]),
+
     onStartBatch : function () {},
     onEndBatch : function () {},
     onLoad : function (aCalendar) {},
@@ -646,6 +652,8 @@ var lightning = {
   },
 
   calendarManagerObserver : {
+    QueryInterface: ChromeUtils.generateQI(["calICalendarManagerObserver"]),
+
     onCalendarRegistered : function (aCalendar) {              
     },
     
